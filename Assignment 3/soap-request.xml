@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  soap-request.xml
+  CampusEats — CS543 Assignment 3, Task 3
+  Request for the PayGate "charge" operation, matching partner.wsdl.
+  Sent by CampusEats' Payments Service when Orders calls initiatePayment
+  with method = CARD or UPI (see Assignment 2 contract).
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+                xmlns:tns="http://paygate-partner.com/payment/v1">
+  <soap:Header>
+    <tns:Credentials>
+      <tns:apiKey>ce-live-8f2c1a9d4b7e4f3a9c10</tns:apiKey>
+      <tns:merchantId>CAMPUSEATS-MERCH-0142</tns:merchantId>
+    </tns:Credentials>
+  </soap:Header>
+  <soap:Body>
+    <tns:ChargeRequest>
+      <tns:merchantRef>ORD-2026-000481</tns:merchantRef>
+      <tns:amount>238.50</tns:amount>
+      <tns:currency>INR</tns:currency>
+      <tns:paymentMethodToken>tok_9a41f7c3e2b6</tns:paymentMethodToken>
+    </tns:ChargeRequest>
+  </soap:Body>
+</soap:Envelope>
