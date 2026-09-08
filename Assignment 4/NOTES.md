@@ -1,10 +1,14 @@
 # NOTES.md — CampusEats Orders Service (Assignment 4)
 
-**
-Daxit Maniya 20251651054
-Ethasam 20251651038
-Gulshan Kumar 20251651040
-**
+## CS 543 Web Services — Assignment 1
+
+## Group no :-20
+
+## Maniya Daxit 20251651054
+
+## Ehtasam 20251651038
+
+## Gulshan kumar 20251651040
 
 Service chosen: **Orders Service** (owns: carts, cart_items, orders, order_items — boundary carried over unchanged from Assignment 2). Not Payments, per the assignment constraint.
 
