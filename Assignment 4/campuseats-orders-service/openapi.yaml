@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: CampusEats Orders Service
+  version: 1.0.0
+  description: >
+    Owns carts, cart_items, orders, and order_items, per the service
+    boundary defined in Assignment 2.
+servers:
+  - url: http://localhost:6000
+
+paths:
+  /orders:
+    post:
+      summary: Place a new order
+      operationId: createOrder
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+          description: If repeated with the same key, returns the original order instead of creating a duplicate.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: Order created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Malformed request body
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Request was well-formed but the domain refused it (e.g. delivery order with no time slot, or payment rejected)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: The Payments dependency was unreachable; the order was not created
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: List orders, optionally filtered
+      operationId: listOrders
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PLACED, CONFIRMED, PREPARING, READY, COMPLETED, CANCELLED]
+      responses:
+        '200':
+          description: A list of order summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderSummary'
+        '400':
+          description: Invalid filter value
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /orders/{orderId}:
+    get:
+      summary: Get a single order
+      operationId: getOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: No order with that id
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /orders/{orderId}/cancellation:
+    post:
+      summary: Cancel an order (state-changing sub-resource)
+      operationId: cancelOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Cancellation accepted; refund and delivery cancellation are processed asynchronously
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationResponse'
+        '404':
+          description: No order with that id
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Order is in a status that can no longer be cancelled
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  schemas:
+    OrderItemInput:
+      type: object
+      required: [menuItemId, quantity]
+      properties:
+        menuItemId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+
+    OrderCreateRequest:
+      type: object
+      required: [studentId, vendorId, items, deliveryType, paymentMethod]
+      properties:
+        studentId:
+          type: string
+        vendorId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemInput'
+        deliveryType:
+          type: string
+          enum: [PICKUP, DELIVERY]
+        timeSlot:
+          type: string
+        couponCode:
+          type: string
+        paymentMethod:
+          type: string
+          enum: [WALLET, CARD, UPI]
+
+    OrderItem:
+      type: object
+      properties:
+        menuItemId:
+          type: string
+        quantity:
+          type: integer
+        priceAtOrder:
+          type: number
+
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        studentId:
+          type: string
+        vendorId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        deliveryType:
+          type: string
+        timeSlot:
+          type: string
+          nullable: true
+        couponCode:
+          type: string
+          nullable: true
+        totalAmount:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderSummary:
+      type: object
+      properties:
+        orderId:
+          type: string
+        studentId:
+          type: string
+        vendorId:
+          type: string
+        status:
+          type: string
+        totalAmount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    CancellationResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
