@@ -1,0 +1,703 @@
+# ==============================================================================
+# 1. CREATE ORDER (201 Created + Location header + ETag)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "Idempotency-Key: idemp_key_run_001" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"delivery_type":"PICKUP","coupon_code":"CAMPUS50"}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> Idempotency-Key: idemp_key_run_001
+> Content-Length: 212
+> 
+} [212 bytes data]
+* upload completely sent off: 212 bytes
+< HTTP/1.1 201 CREATED
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 472
+< Location: /orders/174014
+< ETag: "96b5976bd2393b90"
+< Cache-Control: no-store
+< X-RateLimit-Remaining: 99
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [472 bytes data]
+
+100   684  100   472  100   212    816    366 --:--:-- --:--:-- --:--:--  1185
+* Closing connection
+
+{"coupon_code":"CAMPUS50","created_at":"2026-10-13T06:11:33.531295+00:00","delivery_type":"PICKUP","discount_amount":20.0,"drop_zone":null,"final_amount":70.0,"id":"174014","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651054","subtotal":90.0,"time_slot":null,"updated_at":"2026-10-13T06:11:33.531295+00:00","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# 2. IDEMPOTENT REPEAT (Same Idempotency-Key returns original 201 without duplicate work)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "Idempotency-Key: idemp_key_run_001" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"delivery_type":"PICKUP","coupon_code":"CAMPUS50"}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> Idempotency-Key: idemp_key_run_001
+> Content-Length: 212
+> 
+} [212 bytes data]
+* upload completely sent off: 212 bytes
+< HTTP/1.1 201 CREATED
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 472
+< Location: /orders/174014
+< ETag: "96b5976bd2393b90"
+< X-Cache-Lookup: HIT-IDEMPOTENT
+< X-RateLimit-Remaining: 98
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [472 bytes data]
+
+100   684  100   472  100   212   388k   174k --:--:-- --:--:-- --:--:--  667k
+* Closing connection
+
+{"coupon_code":"CAMPUS50","created_at":"2026-10-13T06:11:33.531295+00:00","delivery_type":"PICKUP","discount_amount":20.0,"drop_zone":null,"final_amount":70.0,"id":"174014","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651054","subtotal":90.0,"time_slot":null,"updated_at":"2026-10-13T06:11:33.531295+00:00","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# 3. SINGLE ITEM READ (200 OK + ETag + Cache-Control)
+# Command: curl -v -X GET http://127.0.0.1:5050/orders/42
+# ==============================================================================
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> GET /orders/42 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 557
+< ETag: "01bd74401bd8293e"
+< Cache-Control: public, max-age=60, must-revalidate
+< X-RateLimit-Remaining: 99
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [557 bytes data]
+
+100   557  100   557    0     0   461k      0 --:--:-- --:--:-- --:--:--  543k
+* Closing connection
+
+{"coupon_code":"CAMPUS50","created_at":"2026-10-13T06:00:00Z","delivery_type":"PICKUP","discount_amount":20.0,"drop_zone":null,"final_amount":100.0,"id":"42","items":[{"item_id":"item_thali_deluxe","name":"Special Veg Thali","quantity":1,"unit_price":90.0},{"item_id":"item_masala_chai","name":"Cutting Masala Chai","quantity":2,"unit_price":15.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651054","subtotal":120.0,"time_slot":"13:30-14:00","updated_at":"2026-10-13T06:00:00Z","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# 4. CONDITIONAL GET (304 Not Modified when client ETag matches)
+# Command: curl -v -X GET http://127.0.0.1:5050/orders/42 -H 'If-None-Match: "01bd74401bd8293e"'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> GET /orders/42 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> If-None-Match: "01bd74401bd8293e"
+> 
+* Request completely sent off
+< HTTP/1.1 304 NOT MODIFIED
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< ETag: "01bd74401bd8293e"
+< Cache-Control: public, max-age=60, must-revalidate
+< X-RateLimit-Remaining: 97
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Closing connection
+
+
+# ==============================================================================
+# 5. CONDITIONAL WRITE REJECTED (412 Precondition Failed when ETag is stale/mismatched)
+# Command: curl -v -X PUT http://127.0.0.1:5050/orders/42 -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H 'If-Match: "stale_etag_hash_0000"' -d '{"time_slot":"15:00-15:30"}'
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> PUT /orders/42 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> If-Match: "stale_etag_hash_0000"
+> Content-Length: 27
+> 
+} [27 bytes data]
+* upload completely sent off: 27 bytes
+< HTTP/1.1 412 PRECONDITION FAILED
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 243
+< X-RateLimit-Remaining: 97
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [243 bytes data]
+
+100   270  100   243  100    27   280k  31877 --:--:-- --:--:-- --:--:--  263k
+* Closing connection
+
+{"detail":"Resource state has modified (current ETag: \"01bd74401bd8293e\", provided: \"stale_etag_hash_0000\"). Precondition failed.","status":412,"title":"Precondition Failed","type":"https://campuseats.univ.edu/errors/precondition-failed"}
+
+
+# ==============================================================================
+# 6. CONDITIONAL WRITE SUCCESSFUL (200 OK when If-Match matches current ETag)
+# Command: curl -v -X PUT http://127.0.0.1:5050/orders/42 -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H 'If-Match: "01bd74401bd8293e"' -d '{"time_slot":"15:00-15:30"}'
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> PUT /orders/42 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> If-Match: "01bd74401bd8293e"
+> Content-Length: 27
+> 
+} [27 bytes data]
+* upload completely sent off: 27 bytes
+< HTTP/1.1 200 OK
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 569
+< ETag: "b6632a6bd186141f"
+< Cache-Control: no-cache
+< X-RateLimit-Remaining: 96
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [569 bytes data]
+
+100   596  100   569  100    27   652k  31727 --:--:-- --:--:-- --:--:--  582k
+* Closing connection
+
+{"coupon_code":"CAMPUS50","created_at":"2026-10-13T06:00:00Z","delivery_type":"PICKUP","discount_amount":20.0,"drop_zone":null,"final_amount":100.0,"id":"42","items":[{"item_id":"item_thali_deluxe","name":"Special Veg Thali","quantity":1,"unit_price":90.0},{"item_id":"item_masala_chai","name":"Cutting Masala Chai","quantity":2,"unit_price":15.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651054","subtotal":120.0,"time_slot":"15:00-15:30","updated_at":"2026-10-13T06:11:33.600219+00:00","vendor_id":"vendor_canteen_central","version":2}
+
+
+# ==============================================================================
+# 7. NON-CRUD ACTION (POST /orders/42/cancel returns 200 OK)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders/42/cancel -H "Authorization: Bearer token_daxit_20251651054"
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders/42/cancel HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Authorization: Bearer token_daxit_20251651054
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 140
+< ETag: "d39fee36f9cac3a5"
+< X-RateLimit-Remaining: 95
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [140 bytes data]
+
+100   140  100   140    0     0   171k      0 --:--:-- --:--:-- --:--:--  136k
+* Closing connection
+
+{"cancelled_at":"2026-10-13T06:11:33.609916+00:00","message":"Order has been successfully cancelled.","order_id":"42","status":"CANCELLED"}
+
+
+# ==============================================================================
+# 8. STATE CONFLICT (409 Conflict when attempting invalid state transition)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders/42/cancel -H "Authorization: Bearer token_daxit_20251651054"
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders/42/cancel HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Authorization: Bearer token_daxit_20251651054
+> 
+* Request completely sent off
+< HTTP/1.1 409 CONFLICT
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 131
+< X-RateLimit-Remaining: 94
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [131 bytes data]
+
+100   131  100   131    0     0  83652      0 --:--:-- --:--:-- --:--:--  127k
+* Closing connection
+
+{"detail":"Order '42' is already cancelled.","status":409,"title":"Conflict","type":"https://campuseats.univ.edu/errors/conflict"}
+
+
+# ==============================================================================
+# 9. MALFORMED BODY (400 Bad Request for invalid JSON syntax)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -d '{"student_id": "s1", items: [bad_syntax]}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> Content-Length: 41
+> 
+} [41 bytes data]
+* upload completely sent off: 41 bytes
+< HTTP/1.1 400 BAD REQUEST
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 143
+< X-RateLimit-Remaining: 93
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [143 bytes data]
+
+100   184  100   143  100    41   186k  54739 --:--:-- --:--:-- --:--:--  179k
+* Closing connection
+
+{"detail":"Malformed JSON syntax in request body.","status":400,"title":"Bad Request","type":"https://campuseats.univ.edu/errors/bad-request"}
+
+
+# ==============================================================================
+# 10. MISSING AUTH (401 Unauthorized with WWW-Authenticate header)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders -H "Content-Type: application/json" -d '{"student_id":"s1","vendor_id":"v1","items":[{"item_id":"i1","quantity":1,"unit_price":10}]}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 92
+> 
+} [92 bytes data]
+* upload completely sent off: 92 bytes
+< HTTP/1.1 401 UNAUTHORIZED
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 186
+< WWW-Authenticate: Bearer realm="CampusEats", error="missing_token"
+< X-RateLimit-Remaining: 96
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [186 bytes data]
+
+100   278  100   186  100    92   246k   121k --:--:-- --:--:-- --:--:--  271k
+* Closing connection
+
+{"detail":"Missing required Authorization header. Expected 'Authorization: Bearer <token>'","status":401,"title":"Unauthorized","type":"https://campuseats.univ.edu/errors/unauthorized"}
+
+
+# ==============================================================================
+# 11. MISSING RESOURCE (404 Not Found)
+# Command: curl -v -X GET http://127.0.0.1:5050/orders/nonexistent_99999
+# ==============================================================================
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> GET /orders/nonexistent_99999 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 404 NOT FOUND
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 141
+< X-RateLimit-Remaining: 95
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [141 bytes data]
+
+100   141  100   141    0     0   212k      0 --:--:-- --:--:-- --:--:--  137k
+* Closing connection
+
+{"detail":"Order 'nonexistent_99999' was not found.","status":404,"title":"Not Found","type":"https://campuseats.univ.edu/errors/not-found"}
+
+
+# ==============================================================================
+# 12. DOMAIN REFUSAL (422 Unprocessable Entity for empty items list)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[]}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> Content-Length: 84
+> 
+} [84 bytes data]
+* upload completely sent off: 84 bytes
+< HTTP/1.1 422 UNPROCESSABLE ENTITY
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 185
+< X-RateLimit-Remaining: 92
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [185 bytes data]
+
+100   269  100   185  100    84   222k   101k --:--:-- --:--:-- --:--:--  262k
+* Closing connection
+
+{"detail":"Order must contain at least one menu item (domain requirement)","status":422,"title":"Unprocessable Entity","type":"https://campuseats.univ.edu/errors/unprocessable-entity"}
+
+
+# ==============================================================================
+# 13. CONTENT NEGOTIATION FAILURE (406 Not Acceptable for Accept: application/xml)
+# Command: curl -v -X GET http://127.0.0.1:5050/orders/101 -H "Accept: application/xml"
+# ==============================================================================
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> GET /orders/101 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: application/xml
+> 
+* Request completely sent off
+< HTTP/1.1 406 NOT ACCEPTABLE
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 199
+< X-RateLimit-Remaining: 95
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [199 bytes data]
+
+100   199  100   199    0     0   263k      0 --:--:-- --:--:-- --:--:--  194k
+* Closing connection
+
+{"detail":"Cannot produce requested format 'application/xml'. Only 'application/json' is supported.","status":406,"title":"Not Acceptable","type":"https://campuseats.univ.edu/errors/not-acceptable"}
+
+
+# ==============================================================================
+# 14. RATE LIMIT EXCEEDED (429 Too Many Requests + Retry-After: 60)
+# Command: curl -v -X GET http://127.0.0.1:5050/orders/101 -H "X-Simulate-Rate-Limit: true"
+# ==============================================================================
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> GET /orders/101 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> X-Simulate-Rate-Limit: true
+> 
+* Request completely sent off
+< HTTP/1.1 429 TOO MANY REQUESTS
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 210
+< Retry-After: 60
+< X-RateLimit-Limit: 100
+< X-RateLimit-Remaining: 0
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [210 bytes data]
+
+100   210  100   210    0     0   260k      0 --:--:-- --:--:-- --:--:--  205k
+* Closing connection
+
+{"detail":"Rate limit exceeded. Your client request quota of 100 requests per minute has been exhausted.","status":429,"title":"Too Many Requests","type":"https://campuseats.univ.edu/errors/too-many-requests"}
+
+
+# ==============================================================================
+# 15. OPTIONS DISCOVERY (204/200 + Allow header)
+# Command: curl -v -X OPTIONS http://127.0.0.1:5050/orders/42
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> OPTIONS /orders/42 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: text/html; charset=utf-8
+< Allow: DELETE, PUT, HEAD, GET, OPTIONS
+< X-RateLimit-Remaining: 94
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Content-Length: 0
+< Connection: close
+< 
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Closing connection
+
+
+# ==============================================================================
+# 16. METHOD OVERRIDE (POST with X-HTTP-Method-Override: PUT)
+# Command: curl -v -X POST http://127.0.0.1:5050/orders/101 -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "X-HTTP-Method-Override: PUT" -d '{"time_slot":"16:00-16:30"}'
+# ==============================================================================
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> POST /orders/101 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Content-Type: application/json
+> Authorization: Bearer token_daxit_20251651054
+> X-HTTP-Method-Override: PUT
+> Content-Length: 27
+> 
+} [27 bytes data]
+* upload completely sent off: 27 bytes
+< HTTP/1.1 200 OK
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: application/json
+< Content-Length: 492
+< ETag: "31dd1ebf4963d2ae"
+< Cache-Control: no-cache
+< X-RateLimit-Remaining: 91
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+{ [492 bytes data]
+
+100   519  100   492  100    27   644k  36193 --:--:-- --:--:-- --:--:--  506k
+* Closing connection
+
+{"coupon_code":null,"created_at":"2026-10-13T06:15:00Z","delivery_type":"DELIVERY","discount_amount":0.0,"drop_zone":"Hostel 4 Ground Floor","final_amount":60.0,"id":"101","items":[{"item_id":"item_cold_coffee","name":"Cold Coffee Frappe","quantity":1,"unit_price":60.0}],"payment_method":"UPI","status":"CONFIRMED","student_id":"student_20251651038","subtotal":60.0,"time_slot":"16:00-16:30","updated_at":"2026-10-13T06:11:33.705845+00:00","vendor_id":"vendor_nescafe_junction","version":2}
+
+
+# ==============================================================================
+# 17. DELETE RESOURCE (204 No Content with empty body)
+# Command: curl -v -X DELETE http://127.0.0.1:5050/orders/101 -H "Authorization: Bearer token_daxit_20251651054"
+# ==============================================================================
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:5050...
+* Connected to 127.0.0.1 (127.0.0.1) port 5050
+> DELETE /orders/101 HTTP/1.1
+> Host: 127.0.0.1:5050
+> User-Agent: curl/8.7.1
+> Accept: */*
+> Authorization: Bearer token_daxit_20251651054
+> 
+* Request completely sent off
+< HTTP/1.1 204 NO CONTENT
+< Server: Werkzeug/3.1.9 Python/3.14.5
+< Date: Tue, 13 Oct 2026 06:11:33 GMT
+< Content-Type: text/html; charset=utf-8
+< X-RateLimit-Remaining: 90
+< X-RateLimit-Limit: 100
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit
+< Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+< X-Content-Type-Options: nosniff
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Server: CampusEats-Orders/1.0 (REST/HTTP)
+< Connection: close
+< 
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Closing connection
+
