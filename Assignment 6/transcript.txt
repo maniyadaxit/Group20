@@ -1,0 +1,422 @@
+# ==============================================================================
+# D1. SUCCESS PATH: CREATE ORDER (201 Created + Location Header + JSON Body)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"address":"Hostel 4 Ground Floor","delivery_type":"DELIVERY","coupon_code":"CAMPUS50"}'
+# ==============================================================================
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 491
+Location: /orders/892730
+ETag: "12d50365c2075a8f"
+Cache-Control: no-store
+X-RateLimit-Remaining: 99
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{"address":"Hostel 4 Ground Floor","coupon_code":"CAMPUS50","created_at":"2026-10-13T06:48:27.231978+00:00","delivery_type":"DELIVERY","discount_amount":20.0,"final_amount":70.0,"id":"892730","items":[{"item_id":"item_thali","name":"Special Thali","quantity":1,"unit_price":90.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651054","subtotal":90.0,"time_slot":null,"updated_at":"2026-10-13T06:48:27.231978+00:00","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# D2.1. FAILURE PATH: EMPTY CART (422 Unprocessable Entity + Problem Details type: empty-cart)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[],"address":"Hostel 4 Ground Floor"}'
+# ==============================================================================
+HTTP/1.1 422 UNPROCESSABLE ENTITY
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 326
+X-RateLimit-Remaining: 98
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/empty-cart",
+  "title": "Unprocessable Entity",
+  "status": 422,
+  "detail": "Request validation failed. One or more fields violate contract requirements.",
+  "errors": [
+    {
+      "field": "items",
+      "message": "Order items list cannot be empty (empty cart)."
+    }
+  ]
+}
+
+
+# ==============================================================================
+# D2.2. FAILURE PATH: MULTI-FIELD VALIDATION (422 with errors[] reporting qty <= 0 and missing address)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -d '{"student_id":"student_20251651054","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_thali","name":"Special Thali","quantity":0,"unit_price":90.0}],"address":""}'
+# ==============================================================================
+HTTP/1.1 422 UNPROCESSABLE ENTITY
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 439
+X-RateLimit-Remaining: 97
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/validation-error",
+  "title": "Unprocessable Entity",
+  "status": 422,
+  "detail": "Request validation failed. One or more fields violate contract requirements.",
+  "errors": [
+    {
+      "field": "address",
+      "message": "Delivery address is required and cannot be blank."
+    },
+    {
+      "field": "items[0].quantity",
+      "message": "Quantity must be an integer >= 1."
+    }
+  ]
+}
+
+
+# ==============================================================================
+# D2.3. FAILURE PATH: UNKNOWN ID (404 Not Found + Problem Details type: order-not-found)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/999999
+# ==============================================================================
+HTTP/1.1 404 NOT FOUND
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 188
+X-RateLimit-Remaining: 99
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/order-not-found",
+  "title": "Order Not Found",
+  "status": 404,
+  "detail": "Order '999999' was not found in the campus orders registry."
+}
+
+
+# ==============================================================================
+# D2.4. FAILURE PATH: ILLEGAL TRANSITION (409 Conflict when canceling already cancelled order)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders/42/cancel -H "Authorization: Bearer token_daxit_20251651054"
+# ==============================================================================
+HTTP/1.1 409 CONFLICT
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 222
+X-RateLimit-Remaining: 95
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/illegal-transition",
+  "title": "Illegal State Transition",
+  "status": 409,
+  "detail": "Order '42' is already in CANCELLED status. Duplicate state transition is illegal."
+}
+
+
+# ==============================================================================
+# D2.5. FAILURE PATH: RATE LIMIT (429 Too Many Requests + Retry-After Header)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/42 -H "X-Simulate-Rate-Limit: true"
+# ==============================================================================
+HTTP/1.1 429 TOO MANY REQUESTS
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 228
+Retry-After: 60
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/rate-limit-exceeded",
+  "title": "Too Many Requests",
+  "status": 429,
+  "detail": "Rate limit exceeded. Your client request quota of 100 requests per minute has been exhausted."
+}
+
+
+# ==============================================================================
+# D2.6. FAILURE PATH: SERVICE UNAVAILABLE (503 Service Unavailable + Retry-After: 30)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/42 -H "X-Simulate-Downstream-Outage: true"
+# ==============================================================================
+HTTP/1.1 503 SERVICE UNAVAILABLE
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 221
+Retry-After: 30
+X-RateLimit-Remaining: 99
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/service-unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "Payments & Identity cluster is currently unreachable. The request was not processed."
+}
+
+
+# ==============================================================================
+# D2.7. FAILURE PATH: INTERNAL ERROR SHIELDING (500 Clean Problem Details, no leaked internals)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "X-Simulate-DB-Failure: true" -d '{"student_id":"s1"}'
+# ==============================================================================
+HTTP/1.1 500 INTERNAL SERVER ERROR
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 248
+X-RateLimit-Remaining: 94
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/internal-error",
+  "title": "Internal Server Error",
+  "status": 500,
+  "detail": "An unexpected internal error occurred. Incident reference ID: inc_65d544e4. Our operations team has been notified."
+}
+
+
+# ==============================================================================
+# D3.1. CONTENT NEGOTIATION: ACCEPT XML (200 OK + Content-Type: application/xml + XML body)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/101 -H "Accept: application/xml"
+# ==============================================================================
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/xml; charset=utf-8
+Content-Length: 651
+ETag: "1e5f2d973597d357"
+Cache-Control: public, max-age=60, must-revalidate
+X-RateLimit-Remaining: 98
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+<?xml version="1.0" encoding="utf-8"?>
+<order><id>101</id><student_id>student_20251651038</student_id><vendor_id>vendor_nescafe_junction</vendor_id><address>Academic Block 1 Lobby</address><delivery_type>PICKUP</delivery_type><status>CONFIRMED</status><subtotal>60.00</subtotal><discount_amount>0.00</discount_amount><final_amount>60.00</final_amount><payment_method>UPI</payment_method><version>1</version><created_at>2026-10-13T06:15:00Z</created_at><updated_at>2026-10-13T06:15:00Z</updated_at><items><item><item_id>item_cold_coffee</item_id><name>Cold Coffee Frappe</name><quantity>1</quantity><unit_price>60.00</unit_price></item></items></order>
+
+
+# ==============================================================================
+# D3.2. CONTENT NEGOTIATION: ACCEPT JSON (200 OK + Content-Type: application/json + JSON body)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/101 -H "Accept: application/json"
+# ==============================================================================
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 477
+ETag: "1e5f2d973597d357"
+Cache-Control: public, max-age=60, must-revalidate
+X-RateLimit-Remaining: 97
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{"address":"Academic Block 1 Lobby","coupon_code":null,"created_at":"2026-10-13T06:15:00Z","delivery_type":"PICKUP","discount_amount":0.0,"final_amount":60.0,"id":"101","items":[{"item_id":"item_cold_coffee","name":"Cold Coffee Frappe","quantity":1,"unit_price":60.0}],"payment_method":"UPI","status":"CONFIRMED","student_id":"student_20251651038","subtotal":60.0,"time_slot":"14:00-14:30","updated_at":"2026-10-13T06:15:00Z","vendor_id":"vendor_nescafe_junction","version":1}
+
+
+# ==============================================================================
+# D3.3. CONTENT NEGOTIATION: REJECT UNSUPPORTED MIME (406 Not Acceptable on Accept: text/csv)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/101 -H "Accept: text/csv"
+# ==============================================================================
+HTTP/1.1 406 NOT ACCEPTABLE
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 236
+X-RateLimit-Remaining: 97
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/not-acceptable",
+  "title": "Not Acceptable",
+  "status": 406,
+  "detail": "Cannot produce requested MIME format 'text/csv'. Only 'application/json' and 'application/xml' are supported."
+}
+
+
+# ==============================================================================
+# D4.1. NO REGRESSION: IDEMPOTENCY-KEY RETRY (Same key returns original 201 without duplicate order)
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "Idempotency-Key: a6_idemp_key_001" -d '{"student_id":"student_20251651040","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_tea","name":"Chai","quantity":1,"unit_price":15.0}],"address":"Hostel 3 Lobby"}'
+# ==============================================================================
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 466
+Location: /orders/213337
+ETag: "4d922e726a7db117"
+Cache-Control: no-store
+X-RateLimit-Remaining: 93
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{"address":"Hostel 3 Lobby","coupon_code":null,"created_at":"2026-10-13T06:48:27.361090+00:00","delivery_type":"DELIVERY","discount_amount":0.0,"final_amount":15.0,"id":"213337","items":[{"item_id":"item_tea","name":"Chai","quantity":1,"unit_price":15.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651040","subtotal":15.0,"time_slot":null,"updated_at":"2026-10-13T06:48:27.361090+00:00","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# D4.2. NO REGRESSION: IDEMPOTENCY REPLAY
+# Command: curl -i -X POST http://127.0.0.1:5060/orders -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H "Idempotency-Key: a6_idemp_key_001" -d '{"student_id":"student_20251651040","vendor_id":"vendor_canteen_central","items":[{"item_id":"item_tea","name":"Chai","quantity":1,"unit_price":15.0}],"address":"Hostel 3 Lobby"}'
+# ==============================================================================
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 466
+Location: /orders/213337
+ETag: "4d922e726a7db117"
+X-RateLimit-Remaining: 92
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{"address":"Hostel 3 Lobby","coupon_code":null,"created_at":"2026-10-13T06:48:27.361090+00:00","delivery_type":"DELIVERY","discount_amount":0.0,"final_amount":15.0,"id":"213337","items":[{"item_id":"item_tea","name":"Chai","quantity":1,"unit_price":15.0}],"payment_method":"WALLET","status":"PLACED","student_id":"student_20251651040","subtotal":15.0,"time_slot":null,"updated_at":"2026-10-13T06:48:27.361090+00:00","vendor_id":"vendor_canteen_central","version":1}
+
+
+# ==============================================================================
+# D4.3. NO REGRESSION: CONDITIONAL GET (304 Not Modified with If-None-Match)
+# Command: curl -i -X GET http://127.0.0.1:5060/orders/101 -H 'If-None-Match: "1e5f2d973597d357"'
+# ==============================================================================
+HTTP/1.1 304 NOT MODIFIED
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+ETag: "1e5f2d973597d357"
+Cache-Control: public, max-age=60, must-revalidate
+X-RateLimit-Remaining: 95
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+
+# ==============================================================================
+# D4.4. NO REGRESSION: CONDITIONAL WRITE (412 Precondition Failed with mismatched If-Match)
+# Command: curl -i -X PATCH http://127.0.0.1:5060/orders/101 -H "Content-Type: application/json" -H "Authorization: Bearer token_daxit_20251651054" -H 'If-Match: "stale_hash_mismatch"' -d '{"time_slot":"17:00-17:30"}'
+# ==============================================================================
+HTTP/1.1 412 PRECONDITION FAILED
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 258
+X-RateLimit-Remaining: 91
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
+{
+  "type": "https://campuseats.univ.edu/errors/precondition-failed",
+  "title": "Precondition Failed",
+  "status": 412,
+  "detail": "Resource state has modified (current ETag: \"1e5f2d973597d357\", supplied: \"stale_hash_mismatch\"). Precondition failed."
+}
+
+
+# ==============================================================================
+# D4.5. NO REGRESSION: DELETE (204 No Content with empty body)
+# Command: curl -i -X DELETE http://127.0.0.1:5060/orders/101 -H "Authorization: Bearer token_daxit_20251651054"
+# ==============================================================================
+HTTP/1.1 204 NO CONTENT
+Server: Werkzeug/3.1.9 Python/3.14.5
+Date: Tue, 13 Oct 2026 06:48:27 GMT
+Content-Type: text/html; charset=utf-8
+X-RateLimit-Remaining: 90
+X-RateLimit-Limit: 100
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, If-None-Match, Idempotency-Key, X-HTTP-Method-Override, X-Simulate-Rate-Limit, X-Simulate-Downstream-Outage, X-Simulate-DB-Failure
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Server: CampusEats-Orders/1.0 (REST/HTTP)
+Connection: close
+
