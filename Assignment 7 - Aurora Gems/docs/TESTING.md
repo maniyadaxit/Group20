@@ -81,4 +81,4 @@ The browser UI is served from the same origin at `http://localhost:4000/app/`, a
 - `ECONNREFUSED`: start MySQL and check `DB_HOST`/port.
 - `ER_ACCESS_DENIED_ERROR`: check the local credentials in `.env`.
 - `ER_BAD_DB_ERROR`: run `schema.sql` against the same database specified by `DB_NAME`.
-- Browser CORS error: use the HTML file through the same origin/static server configured for your local setup, or configure an explicit local-origin CORS policy before running separate dev ports. This server's default starter is GraphQL-only; the UI file can be opened in a browser, but browsers may block cross-origin calls depending on your setup.
+- Browser CORS error: use the HTML file through the same origin/static server configured for your local setup, or configure an explicit local-origin CORS policy before running separate dev ports. The server hosts the UI and GraphQL endpoint on the same origin, so the included UI does not require separate CORS configuration.
