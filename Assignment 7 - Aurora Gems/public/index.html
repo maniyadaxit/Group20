@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111116">
+  <title>Aurora Gems | Catalogue</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101015;--panel:#19191f;--line:#33313a;--muted:#a5a1ad;--gold:#d9b56d;--cream:#f4ecda;--danger:#ff9b9b}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at top,#29221d 0,#101015 52%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:var(--cream);min-height:100vh}
+    .shell{max-width:1120px;margin:auto;padding:38px 22px 64px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+    .brand{font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold)}
+    h1{font-family:Georgia,serif;font-weight:500;letter-spacing:-.04em;font-size:clamp(38px,6vw,66px);margin:14px 0 8px}
+    .intro{color:var(--muted);margin:0;max-width:580px;line-height:1.65}
+    .pill{border:1px solid #54452f;color:var(--gold);padding:9px 13px;border-radius:999px;font-size:12px;white-space:nowrap}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:28px 0 18px;flex-wrap:wrap}
+    .toolbar h2{font-size:17px;font-weight:500;margin:0}
+    .count{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .item{background:linear-gradient(145deg,#222127,#17171d);border:1px solid var(--line);border-radius:16px;padding:20px;min-height:190px;display:flex;flex-direction:column}
+    .item-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .category{color:var(--gold);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+    .status{font-size:11px;color:#9fe0ba;border:1px solid #345643;padding:5px 8px;border-radius:99px}
+    .status.off{color:#e2a4a4;border-color:#6b4141}
+    .item h3{font-family:Georgia,serif;font-weight:500;font-size:24px;margin:24px 0 8px}
+    .item p{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 20px}
+    .price{font-size:22px;color:var(--cream);margin-top:auto}.price small{font-size:11px;color:var(--muted)}
+    .panel{margin-top:30px;padding:23px;background:#18171d;border:1px solid var(--line);border-radius:16px}
+    .panel h2{font-family:Georgia,serif;font-size:26px;font-weight:500;margin:0 0 6px}
+    .panel p{color:var(--muted);font-size:13px;margin:0 0 18px}
+    form{display:grid;grid-template-columns:2fr 1fr 1fr 2fr auto;gap:10px}
+    input,button{font:inherit;border-radius:9px;padding:12px;border:1px solid #403d47}
+    input{min-width:0;background:#111116;color:var(--cream);outline:none}
+    input:focus{border-color:var(--gold)}
+    button{background:var(--gold);color:#17130c;border-color:var(--gold);font-weight:700;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}
+    #message{min-height:22px;margin-top:12px;font-size:13px;color:var(--muted)}
+    #message.error{color:var(--danger)}
+    footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#797581;font-size:11px;margin-top:26px}
+    @media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}form{grid-template-columns:1fr 1fr}.wide{grid-column:span 2}}
+    @media(max-width:520px){.shell{padding:24px 15px}.grid{grid-template-columns:1fr}header{align-items:flex-start}.pill{display:none}form{grid-template-columns:1fr}.wide{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="brand">Aurora Gems · Curated Catalogue</div>
+        <h1>Everyday, elevated.</h1>
+        <p class="intro">A minimal catalogue experience powered by a GraphQL API and MySQL persistence.</p>
+      </div>
+      <span class="pill">GraphQL · MySQL</span>
+    </header>
+    <section>
+      <div class="toolbar"><h2>Catalogue</h2><span class="count" id="count">Loading items…</span></div>
+      <div id="grid" class="grid" aria-live="polite"></div>
+    </section>
+    <section class="panel">
+      <h2>Add a catalogue item</h2>
+      <p>The form submits an <code>addMenuItem</code> GraphQL mutation and reloads the catalogue.</p>
+      <form id="add-form">
+        <input class="wide" id="name" name="name" placeholder="Item name" maxlength="120" required>
+        <input id="price" name="price" type="number" min="0" step="0.01" placeholder="Price (₹)" required>
+        <input id="category" name="category" placeholder="Category">
+        <input id="description" name="description" placeholder="Short description" maxlength="500">
+        <button id="submit" type="submit">Add item</button>
+      </form>
+      <div id="message" role="status"></div>
+    </section>
+    <footer><span>Aurora Gems · CS543 Web Services · Assignment 7</span><span>Demo values only · Add real screenshots after local run</span></footer>
+  </main>
+  <script>
+    const API_URL = window.GRAPHQL_API_URL || 'http://localhost:4000/';
+    const grid = document.querySelector('#grid');
+    const count = document.querySelector('#count');
+    const message = document.querySelector('#message');
+    const submit = document.querySelector('#submit');
+
+    async function graphql(query, variables = {}) {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables })
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.errors?.length) {
+        throw new Error(payload.errors?.map(e => e.message).join('; ') || 'GraphQL request failed');
+      }
+      return payload.data;
+    }
+
+    function safeText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      })[char]);
+    }
+
+    function render(items) {
+      count.textContent = items.length + (items.length === 1 ? ' item' : ' items');
+      if (!items.length) {
+        grid.innerHTML = '<p>No catalogue items found.</p>';
+        return;
+      }
+      grid.innerHTML = items.map(item => `
+        <article class="item">
+          <div class="item-top">
+            <span class="category">${safeText(item.category || 'Catalogue')}</span>
+            <span class="status ${item.available ? '' : 'off'}">${item.available ? 'Available' : 'Unavailable'}</span>
+          </div>
+          <h3>${safeText(item.name)}</h3>
+          <p>${safeText(item.description || 'Thoughtfully listed in the catalogue.')}</p>
+          <div class="price"><small>₹</small> ${Number(item.price).toFixed(2)}</div>
+        </article>`).join('');
+    }
+
+    async function loadItems() {
+      count.textContent = 'Loading items…';
+      try {
+        const data = await graphql(`query ListMenuItems {
+          menuItems { id name price available category description }
+        }`);
+        render(data.menuItems);
+      } catch (error) {
+        count.textContent = 'Could not load items';
+        grid.innerHTML = '<p>GraphQL API unavailable. Start MySQL and run <code>npm start</code>.</p>';
+        message.textContent = error.message;
+        message.classList.add('error');
+      }
+    }
+
+    document.querySelector('#add-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      submit.disabled = true;
+      message.classList.remove('error');
+      message.textContent = 'Saving item…';
+      const input = {
+        name: document.querySelector('#name').value.trim(),
+        price: Number(document.querySelector('#price').value),
+        category: document.querySelector('#category').value.trim() || null,
+        description: document.querySelector('#description').value.trim() || null,
+        available: true
+      };
+      try {
+        await graphql(`mutation AddMenuItem($input: AddMenuItemInput!) {
+          addMenuItem(input: $input) { id name }
+        }`, { input });
+        event.target.reset();
+        message.textContent = 'Item saved to MySQL.';
+        await loadItems();
+      } catch (error) {
+        message.textContent = error.message;
+        message.classList.add('error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    loadItems();
+  </script>
+</body>
+</html>
