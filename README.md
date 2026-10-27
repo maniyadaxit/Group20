@@ -19,6 +19,7 @@ CampusEats is a proposed campus food-ordering system for students and staff, cam
 | [03](./Assignment%203/) | SOAP payment-partner contract | Integration PDF, WSDL, SOAP request, success response and fault |
 | [04](./Assignment%204/) | Service architecture and integration | Design/integration PDFs, schema, service diagrams, HTTP evidence, WSDL/SOAP examples |
 | [05](./Assignment%205/) | HTTP methods and headers | Flask Orders API, OpenAPI contract, automated tests, curl transcript |
+| [07](./Assignment%207%20-%20Aurora%20Gems/) | GraphQL API, MySQL catalogue and browser UI | Schema, resolvers, SQL seed data, UI and demo checklist |
 | [06](./Assignment%206/) | Status codes, errors and validation | Flask Orders API, OpenAPI contract, automated tests, request transcript |
 
 > The historical folder name `Assignemet 2` is retained so existing paths continue to work.
