@@ -18,7 +18,7 @@ npm start
 
 ## Query all menu items
 
-POST JSON to `http://localhost:4000/`:
+POST JSON to `http://localhost:4000/graphql`:
 
 ```json
 {
@@ -74,6 +74,8 @@ The `Mutation.addMenuItem` resolver inserts with placeholders, then selects the 
   }
 }
 ```
+
+The browser UI is served from the same origin at `http://localhost:4000/app/`, and the health check is `http://localhost:4000/health`.
 
 ## Troubleshooting
 - `ECONNREFUSED`: start MySQL and check `DB_HOST`/port.
