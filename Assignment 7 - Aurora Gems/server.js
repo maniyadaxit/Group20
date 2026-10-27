@@ -2,10 +2,11 @@ require('dotenv').config();
 
 const fs = require('node:fs');
 const path = require('node:path');
-const http = require('node:http');
 const { ApolloServer } = require('@apollo/server');
-const { startStandaloneServer } = require('@apollo/server/standalone');
-const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/plugin/landingPage/default');
+const { createServer } = require('node:http');
+const { expressMiddleware } = require('@apollo/server/express4');
+const express = require('express');
+const cors = require('cors');
 const pool = require('./db');
 
 const typeDefs = fs.readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8');
@@ -14,7 +15,7 @@ const resolvers = {
   Query: {
     menuItems: async () => {
       const [rows] = await pool.execute(
-        'SELECT id, name, price, available, category, description FROM menu_items ORDER BY id'
+        'SELECT id, name, price, is_available AS available, category, description FROM menu_items ORDER BY id'
       );
       return rows.map(normalizeMenuItem);
     },
@@ -64,19 +65,24 @@ async function main() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })]
   });
 
-  const { url } = await startStandaloneServer(server, {
-    listen: { port, host: '0.0.0.0' },
-    context: async () => ({ pool })
-  });
+  await server.start();
+  const app = express();
+  app.use(cors({ origin: true }));
+  app.use(express.json({ limit: '1mb' }));
+  app.use('/graphql', expressMiddleware(server));
+  app.get('/', (_req, res) => res.redirect('/app'));
+  app.use('/app', express.static(path.join(__dirname, 'public')));
+  app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'aurora-gems-catalogue' }));
 
-  console.log(`Aurora Gems Catalogue GraphQL API ready at ${url}`);
-  console.log(`UI can be served at http://localhost:${port}/app after starting the optional static server below.`);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Aurora Gems Catalogue GraphQL API ready at http://localhost:${port}/graphql`);
+    console.log(`Web app ready at http://localhost:${port}/app/`);
+  });
 }
 
-// GraphQL-only endpoint based on the assignment tutorial.
+// GraphQL endpoint and static front-end served from one origin.
 main().catch((error) => {
   console.error('Failed to start GraphQL server:', error.message);
   process.exitCode = 1;
