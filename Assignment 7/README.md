@@ -4,7 +4,7 @@
 **Team:** CS543-Team-07 / Group 20  
 **Repository:** https://github.com/maniyadaxit/Group20
 
-> Project note: the repository's course project is CampusEats. This folder fulfills the Assignment 7 GraphQL deliverable as a small Catalogue/Menu service. “CampusEats” is the user-requested project label and is used for the presentation/theme; the API models catalogue products as menu items.
+> This assignment continues the existing CampusEats project from Assignments 1–6. It implements the Catalogue/Menu service using GraphQL, Node.js, and MySQL.
 
 ## Service selected
 **Catalogue/Menu service**. The GraphQL API lists catalogue items and allows creating an item. The SQL table is named `menu_items`, compatible with the existing CampusEats schema concepts.
