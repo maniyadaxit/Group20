@@ -21,7 +21,7 @@ const resolvers = {
     },
     menuItem: async (_parent, { id }) => {
       const [rows] = await pool.execute(
-        'SELECT id, name, price, available, category, description FROM menu_items WHERE id = ?',
+        'SELECT id, name, price, is_available AS available, category, description FROM menu_items WHERE id = ?',
         [Number(id)]
       );
       return rows[0] ? normalizeMenuItem(rows[0]) : null;
