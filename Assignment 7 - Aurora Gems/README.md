@@ -39,7 +39,7 @@ mysql -u root -p < schema.sql
 npm start
 ```
 
-Open [http://localhost:4000/](http://localhost:4000/) for the GraphQL endpoint. The app UI is served at [http://localhost:4000/app](http://localhost:4000/app). Apollo's GraphQL interface is available at the root endpoint where supported by the installed Apollo version.
+Open [http://localhost:4000/app/](http://localhost:4000/app/) for the UI. The GraphQL endpoint is [http://localhost:4000/graphql](http://localhost:4000/graphql); use the JSON examples in `docs/TESTING.md` to test queries and mutations. A health check is available at `/health`.
 
 ## Required GraphQL operations
 List items:
