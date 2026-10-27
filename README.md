@@ -22,6 +22,18 @@ CampusEats is a proposed campus food-ordering system for students and staff, cam
 | [06](./Assignment%206/) | Status codes, errors and validation | Flask Orders API, OpenAPI contract, automated tests, request transcript |
 | [07](./Assignment%207%20-%20Aurora%20Gems/) | GraphQL API, MySQL catalogue and browser UI | Schema, resolvers, SQL seed data, UI and demo checklist |
 
+## Run Assignment 7 GraphQL catalogue
+
+```bash
+cd "Assignment 7 - Aurora Gems"
+cp .env.example .env  # edit DB_PASSWORD first
+npm install
+mysql -u root -p < schema.sql
+npm start
+```
+
+Open `http://localhost:4000/app/`. GraphQL endpoint: `http://localhost:4000/graphql`. See the folder README and `docs/TESTING.md` for query/mutation examples. The demonstration video and before/after screenshots still need to be captured from a local run.
+
 > The historical folder name `Assignemet 2` is retained so existing paths continue to work.
 
 ## Consolidated submission document
