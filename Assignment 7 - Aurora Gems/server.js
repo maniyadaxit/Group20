@@ -3,7 +3,6 @@ require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
 const { ApolloServer } = require('@apollo/server');
-const { createServer } = require('node:http');
 const { expressMiddleware } = require('@apollo/server/express4');
 const express = require('express');
 const cors = require('cors');
