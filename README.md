@@ -20,12 +20,12 @@ CampusEats is a proposed campus food-ordering system for students and staff, cam
 | [04](./Assignment%204/) | Service architecture and integration | Design/integration PDFs, schema, service diagrams, HTTP evidence, WSDL/SOAP examples |
 | [05](./Assignment%205/) | HTTP methods and headers | Flask Orders API, OpenAPI contract, automated tests, curl transcript |
 | [06](./Assignment%206/) | Status codes, errors and validation | Flask Orders API, OpenAPI contract, automated tests, request transcript |
-| [07](./Assignment%207%20-%20Aurora%20Gems/) | GraphQL API, MySQL catalogue and browser UI | Schema, resolvers, SQL seed data, UI and demo checklist |
+| [07](./Assignment%207/) | GraphQL API, MySQL catalogue and browser UI | Schema, resolvers, SQL seed data, UI and demo checklist |
 
 ## Run Assignment 7 GraphQL catalogue
 
 ```bash
-cd "Assignment 7 - Aurora Gems"
+cd "Assignment 7"
 cp .env.example .env  # edit DB_PASSWORD first
 npm install
 mysql -u root -p < schema.sql
