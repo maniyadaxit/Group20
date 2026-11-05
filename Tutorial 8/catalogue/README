@@ -1,0 +1,55 @@
+# CampusEats Catalogue – CS543 Web Services
+
+## Project Description
+
+This project implements a simple CampusEats Catalogue using Node.js and Express.js.
+
+It provides a REST API to retrieve all menu items, fetch a single dish by ID, and add new dishes. A simple HTML and CSS frontend interacts with the REST API using JavaScript fetch().
+
+The application stores menu data in an in-memory array.
+
+## Technologies Used
+
+- Node.js
+- Express.js
+- HTML
+- CSS
+- JavaScript
+- REST API
+
+## Project Structure
+
+```text
+catalogue/
+│
+├── server.js
+├── package.json
+├── package-lock.json
+│
+└── public/
+    ├── index.html
+    └── style.css
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/items` | Retrieves all menu items |
+| GET | `/items/:id` | Retrieves a single dish by ID |
+| POST | `/items` | Adds a new dish to the menu |
+
+## HTTP Status Codes
+
+| Status Code | Meaning | Usage |
+|---|---|---|
+| 200 | OK | Successful GET request |
+| 201 | Created | Successfully added a new dish |
+| 404 | Not Found | Requested dish does not exist |
+| 422 | Unprocessable Entity | Required name field is missing |
+
+## Request Handling
+
+- `req.params.id` is used to get the dish ID from the URL.
+- `req.query.veg` filters menu items by vegetarian status.
+- `req.body` contains the data sent when adding a dish.
