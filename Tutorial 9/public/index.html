@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A CampusEats catalogue protected by JWT authentication and role-based authorization.">
+  <title>CampusEats · Secure Catalogue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">CS543 · WEB SERVICES · TUTORIAL 9</p>
+      <h1>CampusEats</h1>
+      <p class="muted">A secure menu API using JWT authentication and role-based access.</p>
+    </header>
+
+    <section id="loginPanel" class="panel">
+      <p class="eyebrow">ACCOUNT ACCESS</p>
+      <h2>Sign in to continue</h2>
+      <p class="muted small">Choose a demo account below or enter the credentials manually.</p>
+      <form id="loginForm">
+        <label>Email
+          <input id="email" type="email" autocomplete="username" placeholder="asha@campus.edu" required>
+        </label>
+        <label>Password
+          <input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        </label>
+        <button class="primary" type="submit">Sign in</button>
+      </form>
+      <div class="demo-accounts">
+        <button class="demo" type="button" data-email="asha@campus.edu" data-password="customer123">Use customer demo</button>
+        <button class="demo" type="button" data-email="mealhub@campus.edu" data-password="resto123">Use restaurant demo</button>
+      </div>
+      <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="appPanel" class="hidden">
+      <div class="toolbar panel">
+        <div>
+          <p class="eyebrow">SIGNED IN</p>
+          <h2 id="welcome"></h2>
+          <p id="roleLabel" class="muted small"></p>
+        </div>
+        <button id="logoutButton" class="secondary" type="button">Log out</button>
+      </div>
+
+      <section class="panel">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">MENU</p>
+            <h2>Available dishes</h2>
+          </div>
+          <button id="refreshButton" class="secondary" type="button">Refresh</button>
+        </div>
+        <p id="menuMessage" class="message" role="status" aria-live="polite"></p>
+        <div id="menuList" class="menu-list"></div>
+      </section>
+
+      <section id="addPanel" class="panel hidden">
+        <p class="eyebrow">RESTAURANT ACCESS</p>
+        <h2>Add a dish</h2>
+        <form id="addForm" class="add-form">
+          <label>Dish name
+            <input id="dishName" type="text" maxlength="80" placeholder="e.g. Masala Dosa" required>
+          </label>
+          <label>Price (₹)
+            <input id="dishPrice" type="number" min="0" step="0.01" placeholder="60" required>
+          </label>
+          <button class="primary" type="submit">Add dish</button>
+        </form>
+        <p id="addMessage" class="message" role="status" aria-live="polite"></p>
+      </section>
+      <p id="customerNote" class="note hidden">Customer role: you can view the menu. Only restaurant users can add dishes.</p>
+    </section>
+
+    <footer>Passwords are bcrypt-hashed. Protected API requests use signed, expiring JWTs.</footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let token = '';
+    let currentUser = null;
+
+    function showMessage(element, message, isError = false) {
+      element.textContent = message;
+      element.classList.toggle('error', isError);
+    }
+
+    async function api(url, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      if (options.body) headers['Content-Type'] = 'application/json';
+
+      const response = await fetch(url, { ...options, headers });
+      const data = response.status === 204 ? null : await response.json();
+
+      if (response.status === 401) {
+        logout();
+        throw new Error(data?.error || 'Session expired. Please sign in again.');
+      }
+      if (!response.ok) throw new Error(data?.error || 'Request failed.');
+      return data;
+    }
+
+    function setSignedIn(user) {
+      currentUser = user;
+      $('loginPanel').classList.add('hidden');
+      $('appPanel').classList.remove('hidden');
+      $('welcome').textContent = user.email;
+      $('roleLabel').textContent = `Role: ${user.role}`;
+      const canAdd = ['restaurant', 'admin'].includes(user.role);
+      $('addPanel').classList.toggle('hidden', !canAdd);
+      $('customerNote').classList.toggle('hidden', canAdd);
+      loadMenu();
+    }
+
+    async function loadMenu() {
+      showMessage($('menuMessage'), 'Loading menu…');
+      $('menuList').replaceChildren();
+      try {
+        const items = await api('/items');
+        showMessage($('menuMessage'), items.length ? `${items.length} dish(es) available` : 'No dishes yet.');
+        items.forEach((item) => {
+          const row = document.createElement('article');
+          row.className = 'dish';
+          const name = document.createElement('span');
+          name.textContent = item.name;
+          const price = document.createElement('strong');
+          price.textContent = `₹${Number(item.price).toLocaleString('en-IN')}`;
+          row.append(name, price);
+          $('menuList').append(row);
+        });
+      } catch (error) {
+        showMessage($('menuMessage'), error.message, true);
+      }
+    }
+
+    $('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showMessage($('loginMessage'), 'Signing in…');
+      try {
+        const result = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: $('email').value, password: $('password').value })
+        });
+        const data = await result.json();
+        if (!result.ok) throw new Error(data.error || 'Login failed.');
+        token = data.token;
+        setSignedIn(data.user);
+      } catch (error) {
+        showMessage($('loginMessage'), error.message, true);
+      }
+    });
+
+    document.querySelectorAll('.demo').forEach((button) => {
+      button.addEventListener('click', () => {
+        $('email').value = button.dataset.email;
+        $('password').value = button.dataset.password;
+      });
+    });
+
+    $('addForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showMessage($('addMessage'), 'Adding dish…');
+      try {
+        const item = await api('/items', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: $('dishName').value.trim(),
+            price: Number($('dishPrice').value)
+          })
+        });
+        $('addForm').reset();
+        showMessage($('addMessage'), `${item.name} was added successfully.`);
+        await loadMenu();
+      } catch (error) {
+        showMessage($('addMessage'), error.message, true);
+      }
+    });
+
+    $('refreshButton').addEventListener('click', loadMenu);
+
+    function logout() {
+      token = '';
+      currentUser = null;
+      $('appPanel').classList.add('hidden');
+      $('loginPanel').classList.remove('hidden');
+      $('loginForm').reset();
+      $('addForm').reset();
+    }
+    $('logoutButton').addEventListener('click', logout);
+  </script>
+</body>
+</html>
