@@ -1,0 +1,337 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1020">
+    <title>Campus Library | Discover Your Next Read</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">▤</div>
+            <span>Campus<span style="color:#a69aff">Library.</span></span>
+        </div>
+        <div class="status">
+            <span class="status-dot"></span>
+            GraphQL API connected
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="eyebrow">YOUR KNOWLEDGE SPACE</div>
+        <h1>Every book opens<br>a <span>new world.</span></h1>
+        <p>
+            Explore the Campus Library collection, discover books from our authors,
+            and add your next favourite title to the collection.
+        </p>
+        <div class="hero-bottom">
+            <span class="pill">✦ Curated collection</span>
+            <span class="pill">⌘ Powered by GraphQL</span>
+            <span class="pill">▤ MySQL database</span>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="stat">
+            <div class="stat-label">Total books</div>
+            <div class="stat-value" id="bookCount">—</div>
+            <div class="stat-note">In the collection</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Authors</div>
+            <div class="stat-value" id="authorCount">—</div>
+            <div class="stat-note">Voices behind the books</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Publication years</div>
+            <div class="stat-value" id="yearRange">—</div>
+            <div class="stat-note">Collection timeline</div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-heading">
+            <div>
+                <h2>Explore the collection</h2>
+                <p>Find a book worth getting lost in.</p>
+            </div>
+            <div class="eyebrow" id="resultCount">LOADING BOOKS</div>
+        </div>
+
+        <div class="tools">
+            <div class="search-wrap">
+                <span>⌕</span>
+                <input id="search" type="search" placeholder="Search books or authors...">
+            </div>
+            <select id="authorFilter" aria-label="Filter by author">
+                <option value="all">All authors</option>
+            </select>
+            <select id="sortBy" aria-label="Sort books">
+                <option value="title">Sort: Title A–Z</option>
+                <option value="year-desc">Newest first</option>
+                <option value="year-asc">Oldest first</option>
+            </select>
+        </div>
+
+        <div class="book-grid" id="bookGrid">
+            <div class="empty">Connecting to your library...</div>
+        </div>
+    </section>
+
+    <section class="add-section" id="addBookSection">
+        <div class="add-intro">
+            <div class="eyebrow">GROW THE COLLECTION</div>
+            <h2>Have a book in mind?</h2>
+            <p>
+                Add a new title to the library. Your entry will be saved to MySQL
+                through the GraphQL API and appear in the collection.
+            </p>
+            <div class="pill">✦ Your next addition starts here</div>
+        </div>
+
+        <form class="add-form" id="addForm">
+            <label>
+                Book title
+                <input id="title" placeholder="e.g. The Art of Computing" required maxlength="200">
+            </label>
+            <label>
+                Publication year
+                <input id="year" type="number" placeholder="e.g. 2026" min="0" max="9999">
+            </label>
+            <label>
+                Select author
+                <select id="authorId" required>
+                    <option value="">Choose an author</option>
+                </select>
+            </label>
+            <button class="primary-btn" type="submit">＋ Add book to library</button>
+            <p class="message" id="message" role="status" aria-live="polite"></p>
+        </form>
+    </section>
+
+    <footer>
+        <span>Campus Library · CS543 Web Services</span>
+        <span>HTML + CSS · Apollo GraphQL · MySQL</span>
+    </footer>
+</div>
+
+<script>
+const API = 'http://localhost:4000/';
+let authors = [];
+let allBooks = [];
+
+async function gql(query, variables = {}) {
+    const response = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.errors) {
+        throw new Error(
+            result.errors?.map(error => error.message).join(', ') ||
+            'Request failed'
+        );
+    }
+
+    return result.data;
+}
+
+function escapeText(value) {
+    return String(value ?? '');
+}
+
+function renderBooks() {
+    const search = document.getElementById('search').value.trim().toLowerCase();
+    const authorFilter = document.getElementById('authorFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    let filtered = allBooks.filter(book => {
+        const matchesSearch =
+            book.title.toLowerCase().includes(search) ||
+            book.author.name.toLowerCase().includes(search);
+
+        const matchesAuthor =
+            authorFilter === 'all' || String(book.author.id) === authorFilter;
+
+        return matchesSearch && matchesAuthor;
+    });
+
+    filtered.sort((a, b) => {
+        if (sortBy === 'year-desc') return (b.year ?? 0) - (a.year ?? 0);
+        if (sortBy === 'year-asc') return (a.year ?? 0) - (b.year ?? 0);
+        return a.title.localeCompare(b.title);
+    });
+
+    const grid = document.getElementById('bookGrid');
+    grid.replaceChildren();
+
+    document.getElementById('resultCount').textContent =
+        `${filtered.length} ${filtered.length === 1 ? 'BOOK' : 'BOOKS'} FOUND`;
+
+    if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No books match your search. Try another title or author.';
+        grid.appendChild(empty);
+        return;
+    }
+
+    filtered.forEach((book, index) => {
+        const card = document.createElement('article');
+        card.className = 'book-card';
+
+        const cover = document.createElement('div');
+        cover.className = 'book-cover';
+        cover.textContent = ['▤', '✧', '⌘', '◈', '✦'][index % 5];
+
+        const year = document.createElement('span');
+        year.className = 'book-year';
+        year.textContent = book.year ?? 'YEAR N/A';
+
+        const title = document.createElement('h3');
+        title.textContent = book.title;
+
+        const authorLine = document.createElement('div');
+        authorLine.className = 'author-line';
+
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        avatar.textContent = book.author.name
+            .split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+
+        const authorName = document.createElement('span');
+        authorName.textContent = book.author.name;
+
+        authorLine.append(avatar, authorName);
+        card.append(cover, year, title, authorLine);
+        grid.appendChild(card);
+    });
+}
+
+function populateAuthors() {
+    const filter = document.getElementById('authorFilter');
+    const authorSelect = document.getElementById('authorId');
+
+    authors.forEach(author => {
+        const option1 = document.createElement('option');
+        option1.value = author.id;
+        option1.textContent = author.name;
+        filter.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = author.id;
+        option2.textContent = author.name;
+        authorSelect.appendChild(option2);
+    });
+}
+
+async function loadLibrary() {
+    const grid = document.getElementById('bookGrid');
+
+    try {
+        const data = await gql(`
+            query {
+                authors {
+                    id
+                    name
+                    country
+                    books {
+                        id
+                        title
+                        year
+                    }
+                }
+            }
+        `);
+
+        authors = data.authors;
+        allBooks = authors.flatMap(author =>
+            author.books.map(book => ({
+                ...book,
+                author: {
+                    id: author.id,
+                    name: author.name,
+                    country: author.country
+                }
+            }))
+        );
+
+        document.getElementById('bookCount').textContent = allBooks.length;
+        document.getElementById('authorCount').textContent = authors.length;
+
+        const years = allBooks.map(book => book.year).filter(Number.isFinite);
+        document.getElementById('yearRange').textContent = years.length
+            ? `${Math.min(...years)}–${Math.max(...years)}`
+            : '—';
+
+        populateAuthors();
+        renderBooks();
+    } catch (error) {
+        grid.replaceChildren();
+        const message = document.createElement('div');
+        message.className = 'empty';
+        message.textContent = 'Could not connect to GraphQL. Ensure node server.js is running. ' + error.message;
+        grid.appendChild(message);
+
+        document.getElementById('resultCount').textContent = 'CONNECTION ERROR';
+        document.querySelector('.status').lastChild.textContent = ' API unavailable';
+    }
+}
+
+document.getElementById('search').addEventListener('input', renderBooks);
+document.getElementById('authorFilter').addEventListener('change', renderBooks);
+document.getElementById('sortBy').addEventListener('change', renderBooks);
+
+document.getElementById('addForm').addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const message = document.getElementById('message');
+    const title = document.getElementById('title').value.trim();
+    const yearValue = document.getElementById('year').value;
+    const authorId = document.getElementById('authorId').value;
+
+    if (!title || !authorId) {
+        message.textContent = 'Please enter a title and select an author.';
+        return;
+    }
+
+    const button = event.submitter;
+    button.disabled = true;
+    button.textContent = 'Adding book...';
+    message.textContent = '';
+
+    try {
+        await gql(`
+            mutation($title: String!, $year: Int, $authorId: ID!) {
+                addBook(title: $title, year: $year, authorId: $authorId) {
+                    id
+                }
+            }
+        `, {
+            title,
+            year: yearValue ? Number(yearValue) : null,
+            authorId
+        });
+
+        event.target.reset();
+        message.textContent = '✓ Book saved successfully to MySQL!';
+        await loadLibrary();
+    } catch (error) {
+        message.textContent = 'Could not add book: ' + error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = '＋ Add book to library';
+    }
+});
+
+loadLibrary();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  soap-response.xml
+  CampusEats — CS543 Assignment 3, Task 3
+  Success response for the PayGate "charge" operation, matching partner.wsdl.
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+                xmlns:tns="http://paygate-partner.com/payment/v1">
+  <soap:Body>
+    <tns:ChargeResponse>
+      <tns:transactionId>txn_7d3e1c9f6a2b</tns:transactionId>
+      <tns:status>SUCCESS</tns:status>
+      <tns:authCode>A1B2C3</tns:authCode>
+      <tns:amountCharged>238.50</tns:amountCharged>
+      <tns:timestamp>2026-08-26T14:32:07Z</tns:timestamp>
+    </tns:ChargeResponse>
+  </soap:Body>
+</soap:Envelope>

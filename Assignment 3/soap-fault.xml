@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  soap-fault.xml
+  CampusEats — CS543 Assignment 3, Task 3
+  soap:Fault for a realistic failure (declined card) on the PayGate
+  "charge" operation, matching the ChargeFault type in partner.wsdl.
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+                xmlns:tns="http://paygate-partner.com/payment/v1">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode>soap:Server</faultcode>
+      <faultstring>Payment could not be authorised by the issuing bank</faultstring>
+      <detail>
+        <tns:ChargeFault>
+          <tns:faultCode>CARD_DECLINED</tns:faultCode>
+          <tns:faultReason>Issuing bank declined the transaction (insufficient funds)</tns:faultReason>
+          <tns:merchantRef>ORD-2026-000481</tns:merchantRef>
+        </tns:ChargeFault>
+      </detail>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>

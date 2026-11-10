@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+.DS_Store
+docs/screenshots/*.png
+!docs/screenshots/README.md
