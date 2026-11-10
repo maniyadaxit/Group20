@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CampusEats menu catalogue powered by a Node.js and Express REST API.">
+  <title>CampusEats Catalogue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <p class="eyebrow">CS543 · WEB SERVICES</p>
+      <h1>CampusEats Catalogue</h1>
+      <p class="subtitle">Today's campus menu, served by a REST API.</p>
+    </header>
+
+    <section aria-labelledby="menu-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">THE MENU</p>
+          <h2 id="menu-heading">Available dishes</h2>
+        </div>
+        <button id="refreshButton" class="button button-secondary" type="button">Refresh menu</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">Loading menu…</p>
+      <div id="list" class="dish-list" aria-live="polite"></div>
+    </section>
+
+    <section class="form-card" aria-labelledby="form-heading">
+      <p class="eyebrow">NEW TO THE MENU?</p>
+      <h2 id="form-heading">Add a dish</h2>
+      <p class="form-description">Enter a dish name and its price in rupees.</p>
+
+      <form id="addForm">
+        <div class="form-fields">
+          <label class="field">
+            <span>Dish name</span>
+            <input id="name" name="name" type="text" placeholder="e.g. Masala Dosa" maxlength="80" required>
+          </label>
+          <label class="field">
+            <span>Price (₹)</span>
+            <input id="price" name="price" type="number" min="0" step="0.01" placeholder="60">
+          </label>
+          <button id="submitButton" class="button button-primary" type="submit">Add dish</button>
+        </div>
+        <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <footer>Built with HTML, CSS, JavaScript, Node.js and Express.</footer>
+  </main>
+
+  <script>
+    const listElement = document.getElementById('list');
+    const statusElement = document.getElementById('status');
+    const form = document.getElementById('addForm');
+    const formMessage = document.getElementById('formMessage');
+    const submitButton = document.getElementById('submitButton');
+
+    // READ: GET /items, then render the menu.
+    async function loadItems() {
+      statusElement.textContent = 'Loading menu…';
+      listElement.replaceChildren();
+
+      try {
+        const response = await fetch('/items');
+        if (!response.ok) {
+          throw new Error('Could not load the menu. Please try again.');
+        }
+
+        const items = await response.json();
+        if (!Array.isArray(items)) {
+          throw new Error('The server returned an invalid menu response.');
+        }
+
+        statusElement.textContent = items.length
+          ? `${items.length} dish${items.length === 1 ? '' : 'es'} available`
+          : 'No dishes are available yet. Add the first one below.';
+
+        items.forEach((item) => {
+          const card = document.createElement('article');
+          card.className = 'dish-card';
+
+          const name = document.createElement('span');
+          name.className = 'dish-name';
+          name.textContent = item.name;
+
+          const price = document.createElement('span');
+          price.className = 'dish-price';
+          const amount = Number(item.price);
+          price.textContent = `₹${Number.isFinite(amount) ? amount.toLocaleString('en-IN') : '0'}`;
+
+          card.append(name, price);
+          listElement.append(card);
+        });
+      } catch (error) {
+        statusElement.textContent = error.message;
+      }
+    }
+
+    // WRITE: POST /items, then reload the menu after a successful creation.
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      formMessage.textContent = '';
+      submitButton.disabled = true;
+      submitButton.textContent = 'Adding…';
+
+      const name = document.getElementById('name').value.trim();
+      const priceInput = document.getElementById('price').value;
+
+      try {
+        const response = await fetch('/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            price: priceInput === '' ? 0 : Number(priceInput)
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Could not add the dish.');
+        }
+
+        form.reset();
+        formMessage.textContent = `“${result.name}” was added to the menu.`;
+        await loadItems();
+      } catch (error) {
+        formMessage.textContent = error.message;
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Add dish';
+      }
+    });
+
+    document.getElementById('refreshButton').addEventListener('click', loadItems);
+
+    // Load the menu as soon as the page opens.
+    loadItems();
+  </script>
+</body>
+</html>

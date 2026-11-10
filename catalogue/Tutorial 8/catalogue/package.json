@@ -1,0 +1,17 @@
+{
+  "name": "campuseats-catalogue",
+  "version": "1.0.0",
+  "description": "CS543 Web Services tutorial: Node.js, Express REST API, and a simple catalogue UI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

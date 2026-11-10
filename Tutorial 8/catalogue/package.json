@@ -1,9 +1,0 @@
-{
-  "name": "catalogue",
-  "version": "1.0.0",
-  "description": "CS543 Node & Express tutorial - CampusEats Catalogue",
-  "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "license": "ISC",
-  "dependencies": { "express": "^4.19.2" }
-}
